@@ -41,7 +41,7 @@ const FunctionModal = (props) => {
             try{
                 const userID = JSON.parse(await AsyncStorage.getItem("userID"));
                 console.log("func_userid: ", userID);
-                axios.post('http://43.201.36.107:3001/api/user/'+userID+'/mypage/edit/function',
+                axios.post('http://54.180.142.26:3001/api/user/'+userID+'/mypage/edit/function',
                     {'vita': functionUpdate.vita, 'bio': functionUpdate.bio, 'diet': functionUpdate.diet, 'vagina': functionUpdate.vagina })
                 .then((response)=> {
                     if  (response.data.status == 'update_func_success'){

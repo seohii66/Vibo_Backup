@@ -95,7 +95,7 @@ const Edit = ({route, navigation, props}) => {
 
 
             if (editInputs.username && editInputs.profile!=0){   //사용자가 username에 입력함 & 프로필 선택함
-                axios.post('http://43.201.36.107:3001/api/user/'+userID+'/mypage/edit/username',
+                axios.post('http://54.180.142.26:3001/api/user/'+userID+'/mypage/edit/username',
                     {'username': editInputs.username})
                 .then((response)=> {
                     if  (response.data.status == 'update_username_success'){
@@ -110,7 +110,7 @@ const Edit = ({route, navigation, props}) => {
 
             }
             else if (editInputs.username && editInputs.profile==0){ //사용자가 username에 입력함 & 프로필 선택 안 함
-                axios.post('http://43.201.36.107:3001/api/user/'+userID+'/mypage/edit/username',
+                axios.post('http://54.180.142.26:3001/api/user/'+userID+'/mypage/edit/username',
                     {'username': editInputs.username})
                 .then((response)=> {
                     if  (response.data.status == 'update_username_success'){

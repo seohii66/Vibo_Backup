@@ -16,7 +16,7 @@ const Best=()=>{
     // 서버에서 데이터 가져오기
 
     function loadData(){
-    axios.get('http://43.201.36.107:3001/api/data')
+    axios.get('http://54.180.142.26:3001/api/data')
       .then((response) => {
         setData(response.data); //data = [ItemID,item,맛,맛 상세,재구매의사, 목넘김,기능]
       // console.log(response.data)
@@ -94,7 +94,7 @@ const All=()=>{
 
   useEffect(() => {
     // 서버에서 데이터 가져오기
-    axios.get('http://43.201.36.107:3001/api/data')
+    axios.get('http://54.180.142.26:3001/api/data')
       .then((response) => {
         setData(response.data);
       })

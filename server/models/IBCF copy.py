@@ -10,7 +10,7 @@ import pandas as pd
 import sys
 import pymysql.cursors
 
-conn = pymysql.connect(host='54.180.142.26', port=3306, user='user1', password='12345678', db='itemdb', charset='utf8', autocommit=True, cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(host='3.39.226.198', port=3306, user='user1', password='12345678', db='itemdb', charset='utf8', autocommit=True, cursorclass=pymysql.cursors.DictCursor)
 cursor1 = conn.cursor()
 cursor2 = conn.cursor()
 getlikedb="select * from likedb"

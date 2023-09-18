@@ -19,29 +19,52 @@ const All=()=>{
     async function temp(){
       const userID = JSON.parse(await AsyncStorage.getItem("userID"));
       console.log("userID 1: ", userID);
-     
-        try{
-          axios.get('http://43.201.36.107:3001/api/user/'+userID+'/recommend').then((response)=>{
-            console.log(response.data);
-              // setItems(response.data);
 
-              setTimeout(()=>{
-                setItems(response.data);
-                setReady(false);
-              }, 1000)
+        try{              // userinfo의 회원가입한 사람 수 받아오기
+          axios.get('http://54.180.142.26:3001/api/user/'+userID+'/recommend/count').then((num_res)=>{
+            console.log(num_res.data);
+            // 15명 미만이면 contents-based - server: /userID/recommend
+            // 15명 이상이면 ubcf - server: /userID/recommned/ubcf
+            if (num_res.data.data < 15) {
+              console.log("cold-start");
+              // Cold Start : contents-based
+              try{
+                axios.get('http://54.180.142.26:3001/api/user/'+userID+'/recommend').then((response)=>{
+                    console.log("Cold-Start: ", response.data);
+                    setTimeout(()=>{
+                      setItems(response.data);
+                      setReady(false);
+                    }, 1000)
 
-            console.log('response of recommend', recitems)
-            }).catch((error)=>{console.error("here:", error);});
-        } catch (err){
-            console.log("recommend.js) err: ", err);
+                  console.log('response of recommend', recitems)
+                  }).catch((error)=>{console.error("here:", error);});
+              } catch (err){
+                  console.log("recommend.js) err: ", err);
+              };
+
+            } else {
+              console.log("post cold-start");
+              try{
+                axios.get('http://54.180.142.26:3001/api/user/'+userID+'/recommend/ubcf').then((response)=>{
+                  console.log("UBCF: ", response.data);
+                  setTimeout(()=>{
+                    setItems(response.data);
+                    setReady(false);
+                  }, 1000)
+
+                  
+                }).catch((error)=>{console.error("here:", error);});
+              } catch(err){
+                console.log("recommend.js) err: ", err);
+              };
+
+            }
+
+          }).catch((error)=>{console.error("here:", error);});
+        } catch(err){
+          console.log("recommend.js) err: ", err);
         };
-  
       }
-
-      // setTimeout(()=>{
-      //   temp();
-      //   setReady(false)
-      // }, 1000)
       temp();
 
   }, []); // 로그인된 사용자 ID가 변경될 때마다 실행
@@ -56,7 +79,7 @@ const All=()=>{
       <TouchableOpacity onPress={()=>navigation.navigate('DrawerNavigationRoutes',{screen:"DetailPage",params:{item}})}>
       <View style={styles_home.container}>
     <View >
-    <Image source={imagePath[item.ItemID]['src']} style = {styles_home.image}></Image>
+    <Image source={imagePath[item.ItemID]['src']} style = {styles_home.image}></Image>  
     </View>
     <View style={styles_home.text}>
     <Text style={stylelist.Text_Regular}>{item.item}</Text>

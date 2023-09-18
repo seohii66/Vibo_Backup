@@ -17,8 +17,8 @@ app.use(express.urlencoded({ extended: true }));
 
 const itemdb = mysql.createConnection({
     user:"user1",
-    host : "http://43.201.36.107:3001",
-    password:'0000',
+    host : "54.180.142.26",
+    password:'12345678',
     database:"itemdb"
 });
 const spawn = require('child_process').spawn;
@@ -26,6 +26,10 @@ const spawn = require('child_process').spawn;
 
 itemdb.connect();
 
+const port = 3001;
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
+});
 // post: 생성, put: 수정, get: 받아오기, delete: 삭제
 
 // 로그인
@@ -507,6 +511,28 @@ app.use('/api/user/:userID/mypage/edit/function', (req, res) => {
     });
 });
 
+// userinfo의 회원가입한 사람 수 받아오기
+// 15명 미만이면 contents-based - server: /userID/recommend
+// 15명 이상이면 ubcf - server: /userID/recommned/ubcf
+
+// userinfo의 회원가입한 사람 수 받아오기
+app.get('/api/user/:userID/recommend/count', (req, res)=> {
+    const countQuery = 'SELECT userID FROM itemdb.userinfo;';
+    itemdb.query(countQuery, function(err, num_res){
+        console.log(num_res.length);
+        if (err){
+            console.log("count_user_err: ", err);
+        } 
+        else {
+            res.send({
+                message: "Count values successfully!",
+                data : num_res.length
+            });
+        }
+        
+    });
+
+});  
 
 app.get('/api/data', (req,res) => {
     const query = 'SELECT ItemID,item,insta,youtube,맛,맛 상세,재구매의사,목넘김,기능 FROM itemdb;';
@@ -517,9 +543,9 @@ app.get('/api/data', (req,res) => {
             res.json(rows)
             }        
     })});
-    
-app.get('/api/user/:userID/recommend', (req, res) => {
 
+// Cold start : Contents-based
+app.get('/api/user/:userID/recommend', (req, res) => {
       const { userID } = req.params;
       const query = 'SELECT userTaste,userTasteDetail,userRebuy,userTexture,userFunction FROM userinfo WHERE userID = ? ;';
       const query2 = 'SELECT ItemID,item,insta,youtube,맛,맛 상세,목넘김,재구매의사,기능 FROM itemdb WHERE ItemID in (?) ;';
@@ -529,16 +555,18 @@ app.get('/api/user/:userID/recommend', (req, res) => {
         featurelist = featurelist.toString();
         featurelist = featurelist.replace(/\[/g,' ');
         featurelist = featurelist.replace('재구매의사','재구매의사 ');
-      featurelist = featurelist.replace(/\]/g,' ');
-      featurelist = featurelist.replace('\\','');
-      featurelist = featurelist.replace(/\"/g,'');
-      featurelist = featurelist.replace(/\,/g,'');
-      console.log('featurelist[',featurelist)
-      let recommendItemList = [];
+        featurelist = featurelist.replace(/\]/g,' ');
+        featurelist = featurelist.replace('\\','');
+        featurelist = featurelist.replace(/\"/g,'');
+        featurelist = featurelist.replace(/\,/g,'');
+        console.log('featurelist[',featurelist)
 
-      const recommendlist = spawn('python',['./models/CBmodeling_combined.py',featurelist]);
 
-      recommendlist.stdout.on('data',function(data){
+        let recommendItemList = [];
+
+        const recommendlist = spawn('python',['./models/CBmodeling_combined.py',featurelist]);     
+
+        recommendlist.stdout.on('data',function(data){
               rs = iconv.decode(data, 'euc-kr');
               rsarr = rs.split((/, |\]|\[/));
               rsarr = rsarr.slice(1,-1);
@@ -572,9 +600,60 @@ app.get('/api/user/:userID/recommend', (req, res) => {
       });
       recommendlist.stderr.on('data', function(data) {
         console.log("222", data.toString());
-    });});
+    });
+    
+    });
 
 });
+
+// Post Cold-Start : UBCF
+app.get('/api/user/:userID/recommend/ubcf', (req, res)=> {   
+    const query = 'SELECT ItemID,item,insta,youtube,맛,맛 상세,목넘김,재구매의사,기능 FROM itemdb WHERE ItemID in (?) ;';
+
+      let recommendItemList = [];
+
+      const recommendUBCF = spawn('python',['./models/UBCF.py']);     
+
+      recommendUBCF.stdout.on('data',function(data){
+            console.log("hey: ", data.toString());
+
+            rs = data.toString();   // python파일에서의 print 값
+            const searchRegExp1 = new RegExp('\\[', 'g');
+            const searchRegExp2 = new RegExp('\\]', 'g');
+            rs =  rs.replace(searchRegExp1, '');
+            rs =  rs.replace(searchRegExp2, '');
+
+            rsarr = rs.split(/\s+/g);
+            console.log("rsarr: ", rsarr);
+            rsarr = rsarr.slice(0,-1);
+            console.log("rsarr: ", rsarr);
+            resultarr =  rsarr.map(Number);
+
+           console.log("hey2: ", resultarr);
+
+            var j = 0;
+            itemdb.query(query,[resultarr],function(err,rows){
+              if (err){console.error('Error executing second query:',err);}
+              else{
+                  for (i= 0 ; i < resultarr.length; i++) {
+                    if (Object.values(rows[i])){
+                    recommendItemList[j]= Object(rows[i]);
+                    j++;
+                    if (j==resultarr.length){
+                      res.send(recommendItemList);
+                    }
+                  }
+                    else{
+                      j++;
+                    }
+    }}})
+
+    });
+    recommendUBCF.stderr.on('data', function(data) {
+      console.log("222", data.toString());
+  });    
+
+});  
 
 app.use('/api/user/:userID/like/:itemID/update',(req,res,next)=>{
   const UID  = req.params.userID;
@@ -712,8 +791,8 @@ app.get('/api/user/:userID/ratings/:itemID', (req, res) => {
   let userID = Number(UID);
   let k = 0;
 
-  console.log("fire: ", req);
-  console.log('what: ', res);
+  //console.log("fire: ", req);
+  //console.log('what: ', res);
 
     const query = 'SELECT * FROM collabdb WHERE UID = ? ;';
     const query2 = 'SELECT `?` FROM collabdb;'
@@ -769,7 +848,7 @@ app.get('/api/user/:userID/ratings/:itemID', (req, res) => {
 app.get('/api/user/IBCF/:itemID', (req, res) => {
   const { itemID } = req.params;
   
- const IBCFList = spawn('python',['./models/IBCF.py',itemID]);
+ const IBCFList = spawn('python3',['./models/IBCF.py',itemID]);
  const query = 'Select ItemID,item,insta,youtube,맛,맛 상세,재구매의사,목넘김,기능  From itemdb WHERE ItemID in (?);';
  IBCFList.stdout.on('data',function(data){
  //   console.log(data)
@@ -793,7 +872,4 @@ app.get('/api/user/IBCF/:itemID', (req, res) => {
   })
 
   // 서버 시작
-  const port = 3001;
-  app.listen(port, () => {
-    console.log(`Server started on port ${port}`);
-  });
+ 

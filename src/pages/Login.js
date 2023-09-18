@@ -60,7 +60,7 @@ function Login({navigation, props}) {
     const onSignInPressed = () => {
         console.log(loginInputs)
         try{
-            axios.post('http://43.201.36.107:3001/api/login',
+            axios.post('http://54.180.142.26:3001/api/login',
                 {'id': loginInputs.id, 'password': loginInputs.password})
                 .then(function (response) {
                     console.log(response.data);
@@ -71,7 +71,7 @@ function Login({navigation, props}) {
                         storeUserData();            // 회원정보 로컬에 저장
 
                         navigation.replace('Tab');   // 해당 id의 home으로 접속해야 함 !!!!!
-                        axios.post('http://43.201.36.107:3001/api/onLogin/' + loginInputs.id, {'userID':loginInputs.id})
+                        axios.post('http://54.180.142.26:3001/api/onLogin/' + loginInputs.id, {'userID':loginInputs.id})
                         .then((res) => {userID = res.data.data['userID']})
                         .catch()
                     } else{

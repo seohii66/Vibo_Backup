@@ -53,7 +53,7 @@ function JoinCharacter({route, navigation}) {
     const onJoinFinalPressed = () => {
         console.log("JoinCharacter.js) joinInfoInputs: ",joinInfoInputs)
             try{
-                axios.post('http://43.201.36.107:3001/api/join/:joinID/final',
+                axios.post('http://54.180.142.26:3001/api/join/:joinID/final',
                     {'joinID': joinInfoInputs.joinID, 'joinPwd': joinInfoInputs.joinPwd,
                     'joinName': joinInfoInputs.joinName, 'joinProfile': joinInfoInputs.joinProfile,
                     'joinBirth': joinInfoInputs.joinBirth, 'joinSex': joinInfoInputs.joinSex,

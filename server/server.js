@@ -21,7 +21,7 @@ const itemdb = mysql.createConnection({
     password:'12345678',
     database:"itemdb"
 });
-const {spawn} = require('child_process');
+const spawn = require('child_process').spawn;
 
 
 itemdb.connect();
@@ -564,7 +564,7 @@ app.get('/api/user/:userID/recommend', (req, res) => {
 
         let recommendItemList = [];
 
-        const recommendlist = spawn('python',['./models/CBmodeling_combined.py',featurelist]);     
+        const recommendlist = spawn('python3',['./models/CBmodeling_combined.py',featurelist]);     
 
         recommendlist.stdout.on('data',function(data){
               rs = iconv.decode(data, 'euc-kr');
@@ -612,7 +612,7 @@ app.get('/api/user/:userID/recommend/ubcf', (req, res)=> {
 
       let recommendItemList = [];
 
-      const recommendUBCF = spawn('python',['./models/UBCF.py']);     
+      const recommendUBCF = spawn('python3',['./models/UBCF.py']);     
 
       recommendUBCF.stdout.on('data',function(data){
             console.log("hey: ", data.toString());

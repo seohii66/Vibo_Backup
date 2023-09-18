@@ -21,7 +21,7 @@ const itemdb = mysql.createConnection({
     password:'12345678',
     database:"itemdb"
 });
-const spawn = require('child_process').spawn;
+const {spawn} = require('child_process');
 
 
 itemdb.connect();
